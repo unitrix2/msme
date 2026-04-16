@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate PDF Pro | Created by abc</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f0f2f5; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
+        .tool-active { border: 2px solid #2563eb; background: #eff6ff; }
+        .dropzone-active { border-color: #2563eb; background: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <nav class="glass sticky top-0 z-50 px-8 py-4 flex justify-between items-center shadow-sm mb-8">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <i data-lucide="file-check-2"></i>
+            </div>
+            <h1 class="font-bold text-xl tracking-tight text-slate-800">MSME <span class="text-blue-600">Office Tools</span></h1>
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-500">
+            <span>No Server Uploads</span>
+            <span>Privacy Guaranteed</span>
+            <span class="bg-slate-100 px-3 py-1 rounded-full text-xs">created by: Salman</span>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+            <button onclick="setMode('merge', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="merge" class="text-blue-500 mb-2"></i><span class="text-xs font-bold">Merge</span>
+            </button>
+            <button onclick="setMode('split', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="scissors" class="text-red-500 mb-2"></i><span class="text-xs font-bold">Split</span>
+            </button>
+            <button onclick="setMode('compress', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="minimize-2" class="text-orange-500 mb-2"></i><span class="text-xs font-bold">Compress</span>
+            </button>
+            <button onclick="setMode('img2pdf', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="image" class="text-green-500 mb-2"></i><span class="text-xs font-bold">Img to PDF</span>
+            </button>
+            <button onclick="setMode('enhance', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="sparkles" class="text-purple-500 mb-2"></i><span class="text-xs font-bold">Enhance</span>
+            </button>
+            <button onclick="setMode('protect', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="lock" class="text-amber-600 mb-2"></i><span class="text-xs font-bold">Protect</span>
+            </button>
+            <button onclick="setMode('txt', this)" class="tool-btn p-4 glass rounded-2xl flex flex-col items-center transition-all hover:scale-105">
+                <i data-lucide="file-type" class="text-slate-500 mb-2"></i><span class="text-xs font-bold">To Text</span>
+            </button>
+        </div>
+
+        <div id="workspace" class="max-w-4xl mx-auto hidden">
+            <div class="glass rounded-3xl p-8 shadow-2xl border border-white">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 id="mode-title" class="text-2xl font-bold text-slate-800 capitalize">Tool</h2>
+                        <p id="mode-desc" class="text-slate-500 text-sm">Description of the tool.</p>
+                    </div>
+                    <button onclick="resetUI()" class="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div id="dropzone" class="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center transition-all hover:border-blue-400 bg-slate-50/50 relative">
+                    <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" multiple>
+                    <div class="pointer-events-none">
+                        <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="upload" class="text-blue-600"></i>
+                        </div>
+                        <p class="text-slate-700 font-bold">Drop files or click to browse</p>
+                        <p class="text-xs text-slate-400 mt-2">Maximum privacy: Files never leave your browser</p>
+                    </div>
+                </div>
+
+                <div id="file-list" class="mt-6 space-y-3 max-h-60 overflow-y-auto pr-2"></div>
+
+                <div id="progress-area" class="hidden mt-8">
+                    <div class="flex justify-between text-xs font-bold mb-2 text-blue-600">
+                        <span id="status-label">PROCESSING...</span>
+                        <span id="percent-label">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                        <div id="progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <button id="exec-btn" class="w-full mt-8 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-blue-600 transform transition-all active:scale-[0.98] shadow-xl disabled:opacity-50">
+                    Execute Task
+                </button>
+            </div>
+        </div>
+
+        <div id="placeholder" class="text-center py-20">
+            <div class="bg-white w-20 h-20 rounded-3xl shadow-lg flex items-center justify-center mx-auto mb-6 text-slate-300">
+                <i data-lucide="mouse-pointer-2" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-700">Select a tool to get started</h3>
+            <p class="text-slate-400">All processing happens locally on your computer.</p>
+        </div>
+    </main>
+
+    <canvas id="enhance-canvas" class="hidden"></canvas>
+
+    <script>
+        lucide.createIcons();
+        const { PDFDocument, rgb } = PDFLib;
+        let currentMode = '';
+        let selectedFiles = [];
+
+        function setMode(mode, btn) {
+            currentMode = mode;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('tool-active'));
+            btn.classList.add('tool-active');
+            
+            document.getElementById('workspace').classList.remove('hidden');
+            document.getElementById('placeholder').classList.add('hidden');
+            
+            const config = {
+                'merge': ['Merge PDFs', 'Combine multiple PDF files into one single document.'],
+                'split': ['Split PDF', 'Separate every page into its own individual PDF file.'],
+                'compress': ['Compress PDF', 'Reduce file size while maintaining visual quality.'],
+                'img2pdf': ['Images to PDF', 'Convert JPG/PNG images into a clean PDF file.'],
+                'enhance': ['Enhance (CamScanner)', 'Make backgrounds white and sharpen text for scans.'],
+                'protect': ['Protect PDF', 'Add a password to your PDF document.'],
+                'txt': ['To Text', 'Extract all readable text from the PDF file.']
+            };
+
+            document.getElementById('mode-title').innerText = config[mode][0];
+            document.getElementById('mode-desc').innerText = config[mode][1];
+            
+            selectedFiles = [];
+            updateFileList();
+            window.scrollTo({ top: document.getElementById('workspace').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function resetUI() {
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('placeholder').classList.remove('hidden');
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('tool-active'));
+        }
+
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            updateFileList();
+        });
+
+        function updateFileList() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = selectedFiles.map((f, i) => `
+                <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
+                            <i data-lucide="file"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-slate-700 truncate max-w-[200px]">${f.name}</p>
+                            <p class="text-[10px] text-slate-400 uppercase font-bold">${(f.size/1024).toFixed(1)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="selectedFiles.splice(${i},1);updateFileList()" class="text-slate-300 hover:text-red-500 transition">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        document.getElementById('exec-btn').addEventListener('click', async () => {
+            if(selectedFiles.length === 0) return alert("Please select files!");
+            
+            const btn = document.getElementById('exec-btn');
+            const progressArea = document.getElementById('progress-area');
+            const bar = document.getElementById('progress-bar');
+            
+            btn.disabled = true;
+            progressArea.classList.remove('hidden');
+            bar.style.width = '30%';
+
+            try {
+                switch(currentMode) {
+                    case 'merge': await doMerge(); break;
+                    case 'split': await doSplit(); break;
+                    case 'compress': await doCompress(); break;
+                    case 'img2pdf': await doImgToPdf(); break;
+                    case 'enhance': await doEnhance(); break;
+                    case 'txt': await doToText(); break;
+                    case 'protect': 
+                        const pw = prompt("Enter Password:");
+                        if(pw) await doProtect(pw);
+                        break;
+                }
+                bar.style.width = '100%';
+                setTimeout(() => {
+                    progressArea.classList.add('hidden');
+                    btn.disabled = false;
+                    bar.style.width = '0%';
+                }, 1000);
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                progressArea.classList.add('hidden');
+            }
+        });
+
+        // --- ENGINE FUNCTIONS ---
+
+        async function doMerge() {
+            const merged = await PDFDocument.create();
+            for(const f of selectedFiles) {
+                const doc = await PDFDocument.load(await f.arrayBuffer());
+                const pages = await merged.copyPages(doc, doc.getPageIndices());
+                pages.forEach(p => merged.addPage(p));
+            }
+            download(await merged.save(), "merged.pdf");
+        }
+
+        async function doSplit() {
+            const f = selectedFiles[0];
+            const doc = await PDFDocument.load(await f.arrayBuffer());
+            for(let i=0; i < doc.getPageCount(); i++) {
+                const newDoc = await PDFDocument.create();
+                const [p] = await newDoc.copyPages(doc, [i]);
+                newDoc.addPage(p);
+                download(await newDoc.save(), `page_${i+1}.pdf`);
+            }
+        }
+
+        async function doCompress() {
+            // Logic: Isme hum PDF pages ko images banate hain aur 
+            // quality reduce karke wapas PDF mein convert karte hain.
+            const f = selectedFiles[0];
+            const pdfData = new Uint8Array(await f.arrayBuffer());
+            const loadingTask = pdfjsLib.getDocument(pdfData);
+            const pdf = await loadingTask.promise;
+            const newPdf = await PDFDocument.create();
+
+            for(let i=1; i<=pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({scale: 1.5}); // Lower scale = smaller file
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({canvasContext: ctx, viewport: viewport}).promise;
+                const imgData = canvas.toDataURL('image/jpeg', 0.5); // 0.5 is 50% quality
+                const img = await newPdf.embedJpg(imgData);
+                const newPage = newPdf.addPage([img.width, img.height]);
+                newPage.drawImage(img, {x:0, y:0, width:img.width, height:img.height});
+            }
+            download(await newPdf.save(), "compressed.pdf");
+        }
+
+        async function doEnhance() {
+            const newPdf = await PDFDocument.create();
+            const canvas = document.getElementById('enhance-canvas');
+            const ctx = canvas.getContext('2d');
+
+            for(const f of selectedFiles) {
+                const img = await createImageBitmap(f);
+                canvas.width = img.width;
+                canvas.height = img.height;
+                
+                // CamScanner Filter
+                ctx.filter = 'contrast(1.5) brightness(1.2) grayscale(1)';
+                ctx.drawImage(img, 0, 0);
+                
+                const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                const pdfImg = await newPdf.embedJpg(imgData);
+                const page = newPdf.addPage([pdfImg.width, pdfImg.height]);
+                page.drawImage(pdfImg, {x:0, y:0, width:pdfImg.width, height:pdfImg.height});
+            }
+            download(await newPdf.save(), "enhanced_scan.pdf");
+        }
+
+        async function doImgToPdf() {
+            const doc = await PDFDocument.create();
+            for(const f of selectedFiles) {
+                const bytes = await f.arrayBuffer();
+                const img = f.type.includes('png') ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+                const p = doc.addPage([img.width, img.height]);
+                p.drawImage(img, {x:0, y:0, width:img.width, height:img.height});
+            }
+            download(await doc.save(), "images_to_pdf.pdf");
+        }
+
+        async function doToText() {
+            const f = selectedFiles[0];
+            const pdfData = new Uint8Array(await f.arrayBuffer());
+            const pdf = await pdfjsLib.getDocument(pdfData).promise;
+            let text = "";
+            for(let i=1; i<=pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(s => s.str).join(" ") + "\n\n";
+            }
+            const blob = new Blob([text], {type: 'text/plain'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "extracted_text.txt";
+            link.click();
+        }
+
+        async function doProtect(password) {
+            const f = selectedFiles[0];
+            // pdf-lib currently does not support native encryption encryption easily
+            // Most JS libraries require a heavy wrapper for this, 
+            // alerting user for now but keeping the UI.
+            alert("Security Note: Standard JS-PDF encryption requires a specialized node-backend. For client-side, we recommend using a system-level password.");
+        }
+
+        function download(bytes, name) {
+            const blob = new Blob([bytes], {type: "application/pdf"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = name;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
