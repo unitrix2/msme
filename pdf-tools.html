@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="red">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PDF Pro Tool Suite — Professional-grade browser-based PDF editor. Merge, split, compress, rotate, watermark, OCR, convert, edit, and more. 100% client-side, privacy-first.">
+  <meta name="keywords" content="PDF editor, PDF tools, merge PDF, split PDF, compress PDF, OCR, watermark, free PDF editor">
+  <meta name="author" content="Salman">
+  <title>PDF Pro Tool Suite — By Salman</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- PDF Libraries -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <!-- Tesseract.js OCR -->
+  <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Particle Canvas Background -->
+  <canvas id="particleCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;"></canvas>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+
+    <!-- ═══════════════════════════════════════════════════════
+         SIDEBAR
+         ═══════════════════════════════════════════════════════ -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-icon"><i data-lucide="file-text"></i></div>
+          <div class="brand-text">
+            <span class="brand-name">PDF Pro Tools</span>
+            <span class="brand-tagline">All-in-One Suite</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <!-- Back to Home -->
+        <div class="nav-section">
+          <a href="index.html" class="nav-item" style="color:var(--accent);text-decoration:none;gap:8px;">
+            <i data-lucide="arrow-left"></i>
+            <span class="nav-text">Go to Home</span>
+          </a>
+        </div>
+
+        <!-- Home -->
+        <div class="nav-section">
+          <button class="nav-item active" data-tool="home">
+            <i data-lucide="home"></i>
+            <span class="nav-text">Home</span>
+          </button>
+        </div>
+
+        <!-- Document Tools -->
+        <div class="nav-section">
+          <div class="nav-section-title">Document Tools</div>
+          <button class="nav-item" data-tool="merge">
+            <i data-lucide="combine"></i>
+            <span class="nav-text">Merge & Combine</span>
+          </button>
+          <button class="nav-item" data-tool="split">
+            <i data-lucide="scissors"></i>
+            <span class="nav-text">Split & Extract</span>
+          </button>
+          <button class="nav-item" data-tool="pages">
+            <i data-lucide="flip-horizontal-2"></i>
+            <span class="nav-text">Page Operations</span>
+          </button>
+          <button class="nav-item" data-tool="compress">
+            <i data-lucide="archive"></i>
+            <span class="nav-text">Compress</span>
+          </button>
+        </div>
+
+        <!-- Enhancement -->
+        <div class="nav-section">
+          <div class="nav-section-title">Enhancement</div>
+          <button class="nav-item" data-tool="watermark">
+            <i data-lucide="stamp"></i>
+            <span class="nav-text">Watermark & Stamp</span>
+          </button>
+          <button class="nav-item" data-tool="security">
+            <i data-lucide="shield-check"></i>
+            <span class="nav-text">Security</span>
+          </button>
+        </div>
+
+        <!-- Convert & OCR -->
+        <div class="nav-section">
+          <div class="nav-section-title">Convert & OCR</div>
+          <button class="nav-item" data-tool="convert">
+            <i data-lucide="repeat-2"></i>
+            <span class="nav-text">Convert</span>
+          </button>
+          <button class="nav-item" data-tool="ocr">
+            <i data-lucide="scan-text"></i>
+            <span class="nav-text">OCR Scanner</span>
+            <span class="nav-badge">हिं/EN</span>
+          </button>
+        </div>
+
+        <!-- Edit & View -->
+        <div class="nav-section">
+          <div class="nav-section-title">Edit & View</div>
+          <button class="nav-item" data-tool="edit">
+            <i data-lucide="pen-tool"></i>
+            <span class="nav-text">Edit & Annotate</span>
+          </button>
+          <button class="nav-item" data-tool="viewer">
+            <i data-lucide="eye"></i>
+            <span class="nav-text">Viewer & Info</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Creator Badge -->
+      <div class="creator-badge">
+        <span>Created with</span>
+        <span class="creator-heart">♥</span>
+        <span>by</span>
+        <span class="creator-name">Salman</span>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MAIN AREA
+         ═══════════════════════════════════════════════════════ -->
+    <main class="main-area">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="menu-toggle" aria-label="Toggle menu">
+            <i data-lucide="menu"></i>
+          </button>
+          <div>
+            <div id="headerTitle" class="header-title">PDF Pro Tool Suite</div>
+            <div class="header-subtitle">100% Private — Files never leave your browser</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <!-- Back to Home Link -->
+          <a href="index.html" class="btn btn-sm btn-secondary" style="margin-right: 12px; gap: 6px; padding: 6px 12px; text-decoration: none; display: inline-flex; align-items: center; border-radius: var(--radius-full); font-weight: 600;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Go to Home
+          </a>
+          <!-- Accent Color Picker -->
+          <div class="accent-picker" title="Accent Color">
+            <div class="accent-dot active" data-color="blue" title="Ocean Blue"></div>
+            <div class="accent-dot" data-color="purple" title="Royal Purple"></div>
+            <div class="accent-dot" data-color="red" title="Crimson Red"></div>
+            <div class="accent-dot" data-color="green" title="Emerald Green"></div>
+            <div class="accent-dot" data-color="orange" title="Sunset Orange"></div>
+            <div class="accent-dot" data-color="pink" title="Rose Pink"></div>
+          </div>
+          <!-- Theme Toggle -->
+          <button id="themeToggleBtn" class="theme-toggle" title="Toggle Dark/Light Mode">
+            <i data-lucide="moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <div class="main-content">
+
+        <!-- ═══════ HOME PANEL ═══════ -->
+        <div id="panel-home" class="tool-panel active">
+          <div class="home-screen">
+            <h1 class="home-title">PDF Pro Tool Suite</h1>
+            <p class="home-subtitle">Your complete, privacy-first PDF toolkit. All processing happens right in your browser — no uploads, no servers, no limits.</p>
+            <div class="home-tools-grid">
+              <div class="home-tool-card" onclick="App.navigateTo('merge')">
+                <div class="home-tool-icon">📄</div>
+                <div class="home-tool-name">Merge & Combine</div>
+                <div class="home-tool-desc">Combine multiple PDFs with custom order</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('split')">
+                <div class="home-tool-icon">✂️</div>
+                <div class="home-tool-name">Split & Extract</div>
+                <div class="home-tool-desc">Split by range, extract or delete pages</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('pages')">
+                <div class="home-tool-icon">🔄</div>
+                <div class="home-tool-name">Page Operations</div>
+                <div class="home-tool-desc">Rotate, reorder, crop, resize pages</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('compress')">
+                <div class="home-tool-icon">🗜️</div>
+                <div class="home-tool-name">Compress</div>
+                <div class="home-tool-desc">Reduce file size with quality control</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('watermark')">
+                <div class="home-tool-icon">🖊️</div>
+                <div class="home-tool-name">Watermark & Stamp</div>
+                <div class="home-tool-desc">Add text/image watermarks, page numbers</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('security')">
+                <div class="home-tool-icon">🔐</div>
+                <div class="home-tool-name">Security</div>
+                <div class="home-tool-desc">Password protect or unlock PDFs</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('convert')">
+                <div class="home-tool-icon">🔄</div>
+                <div class="home-tool-name">Convert</div>
+                <div class="home-tool-desc">PDF ↔ Images, custom DPI & layouts</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('ocr')">
+                <div class="home-tool-icon">🔍</div>
+                <div class="home-tool-name">OCR Scanner</div>
+                <div class="home-tool-desc">Hindi + English text recognition</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('edit')">
+                <div class="home-tool-icon">📝</div>
+                <div class="home-tool-name">Edit & Annotate</div>
+                <div class="home-tool-desc">Draw, text, shapes, signatures</div>
+              </div>
+              <div class="home-tool-card" onclick="App.navigateTo('viewer')">
+                <div class="home-tool-icon">📊</div>
+                <div class="home-tool-name">Viewer & Info</div>
+                <div class="home-tool-desc">View PDF, extract text, compare files</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ MERGE PANEL ═══════ -->
+        <div id="panel-merge" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="combine"></i> Merge & Combine PDFs</h2>
+            <p>Combine multiple PDF files into one. Drag to reorder, select specific pages from each file.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload Files</div>
+              <div id="mergeDropzone" class="dropzone">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Drop PDF files here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span> — Multiple files allowed</div>
+                <input type="file" accept=".pdf" multiple>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i data-lucide="list-ordered"></i> File Order (Drag to Reorder)</div>
+              <div id="mergeFileList" class="file-list"></div>
+              <div id="mergeEmptyState" class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-title">No files added yet</div>
+                <div class="empty-state-text">Upload PDF files to start merging</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i data-lucide="settings"></i> Merge Options</div>
+              <div class="option-group">
+                <div class="option-row">
+                  <label>Page Selection:</label>
+                  <div class="chip-group">
+                    <button class="chip active" data-merge-pages="all">All Pages</button>
+                    <button class="chip" data-merge-pages="custom">Custom Selection</button>
+                  </div>
+                </div>
+                <div id="mergeCustomPages" class="hidden">
+                  <p class="text-sm text-muted mb-2">Click on page thumbnails below to select/deselect pages from each file.</p>
+                  <div id="mergePageSelector" class="thumbnail-grid"></div>
+                </div>
+              </div>
+            </div>
+            <div id="mergeProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Merging...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <div class="flex gap-3">
+              <button id="mergeBtn" class="btn btn-primary btn-lg" disabled>
+                <i data-lucide="combine"></i> Merge PDFs
+              </button>
+              <button id="mergeClearBtn" class="btn btn-secondary btn-lg">
+                <i data-lucide="trash-2"></i> Clear All
+              </button>
+            </div>
+            <div id="mergeResult" class="result-section"></div>
+          </div>
+        </div>
+
+        <!-- ═══════ SPLIT PANEL ═══════ -->
+        <div id="panel-split" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="scissors"></i> Split & Extract Pages</h2>
+            <p>Split PDF by page ranges, extract specific pages, or delete unwanted pages.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="splitDropzone" class="dropzone">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+              <div id="splitFileInfo" class="hidden mt-3"></div>
+            </div>
+            <div class="card" id="splitOptionsCard">
+              <div class="tabs" id="splitTabs">
+                <button class="tab-btn active" data-tab="splitByRange">By Range</button>
+                <button class="tab-btn" data-tab="splitIntoPages">Into Pages</button>
+                <button class="tab-btn" data-tab="extractPages">Extract</button>
+                <button class="tab-btn" data-tab="deletePages">Delete</button>
+              </div>
+              <div id="splitByRange" class="tab-content active">
+                <div class="form-group mb-3">
+                  <label class="form-label">Page Ranges (e.g., 1-3, 5, 7-10)</label>
+                  <input id="splitRangeInput" type="text" class="form-input" placeholder="1-3, 5, 7-10">
+                </div>
+                <p class="text-sm text-muted">Each range will create a separate PDF file.</p>
+              </div>
+              <div id="splitIntoPages" class="tab-content">
+                <p class="text-secondary">Every page will be extracted as an individual PDF file.</p>
+              </div>
+              <div id="extractPages" class="tab-content">
+                <div class="form-group mb-3">
+                  <label class="form-label">Pages to Extract (e.g., 1, 3, 5-8)</label>
+                  <input id="extractPagesInput" type="text" class="form-input" placeholder="1, 3, 5-8">
+                </div>
+                <p class="text-sm text-muted">Selected pages will be combined into a single new PDF.</p>
+              </div>
+              <div id="deletePages" class="tab-content">
+                <div class="form-group mb-3">
+                  <label class="form-label">Pages to Delete (e.g., 2, 4, 6)</label>
+                  <input id="deletePagesInput" type="text" class="form-input" placeholder="2, 4, 6">
+                </div>
+                <p class="text-sm text-muted">These pages will be removed. Remaining pages will be saved.</p>
+              </div>
+              <div id="splitPageThumbnails" class="thumbnail-grid mt-4"></div>
+            </div>
+            <div id="splitProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Processing...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <button id="splitBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="scissors"></i> Split / Extract
+            </button>
+            <div id="splitResult" class="result-section"></div>
+          </div>
+        </div>
+
+        <!-- ═══════ PAGE OPERATIONS PANEL ═══════ -->
+        <div id="panel-pages" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="flip-horizontal-2"></i> Page Operations</h2>
+            <p>Rotate, reorder, crop, resize pages, or reverse page order.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="pagesDropzone" class="dropzone">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card">
+              <div class="tabs" id="pagesTabs">
+                <button class="tab-btn active" data-tab="rotateTab">Rotate</button>
+                <button class="tab-btn" data-tab="reorderTab">Reorder</button>
+                <button class="tab-btn" data-tab="reverseTab">Reverse</button>
+              </div>
+              <div id="rotateTab" class="tab-content active">
+                <div class="option-group">
+                  <div class="option-row">
+                    <label>Rotation:</label>
+                    <div class="chip-group">
+                      <button class="chip active" data-rotate="90">90° →</button>
+                      <button class="chip" data-rotate="180">180°</button>
+                      <button class="chip" data-rotate="270">90° ←</button>
+                    </div>
+                  </div>
+                  <div class="option-row">
+                    <label>Apply to:</label>
+                    <div class="chip-group">
+                      <button class="chip active" data-rotate-scope="all">All Pages</button>
+                      <button class="chip" data-rotate-scope="custom">Selected Pages</button>
+                    </div>
+                  </div>
+                  <div id="rotateCustomPages" class="hidden">
+                    <div class="form-group">
+                      <label class="form-label">Page Numbers (e.g., 1, 3, 5-8)</label>
+                      <input id="rotatePageInput" type="text" class="form-input" placeholder="1, 3, 5-8">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div id="reorderTab" class="tab-content">
+                <p class="text-secondary mb-3">Drag and drop pages to reorder them.</p>
+                <div id="reorderGrid" class="thumbnail-grid"></div>
+              </div>
+              <div id="reverseTab" class="tab-content">
+                <p class="text-secondary">Reverses the entire page order of your PDF (last page becomes first).</p>
+              </div>
+              <div id="pagesPageThumbnails" class="thumbnail-grid mt-4"></div>
+            </div>
+            <div id="pagesProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Processing...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <button id="pagesBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="check"></i> Apply Changes
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════ COMPRESS PANEL ═══════ -->
+        <div id="panel-compress" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="archive"></i> Compress & Optimize</h2>
+            <p>Reduce PDF file size with quality control. Choose compression level.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="compressDropzone" class="dropzone">
+                <div class="dropzone-icon">📦</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i data-lucide="sliders-horizontal"></i> Compression Settings</div>
+              <div class="option-group">
+                <div class="option-row">
+                  <label>Quality Level:</label>
+                  <div class="chip-group">
+                    <button class="chip" data-quality="low">Low (Max Compression)</button>
+                    <button class="chip active" data-quality="medium">Medium (Balanced)</button>
+                    <button class="chip" data-quality="high">High (Best Quality)</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Image Quality: <span id="compressQualityValue">60</span>%</label>
+                  <input id="compressQualitySlider" type="range" class="form-range" min="10" max="100" value="60">
+                </div>
+                <div class="option-row">
+                  <label class="form-check">
+                    <input type="checkbox" id="compressGrayscale"> Convert images to grayscale
+                  </label>
+                </div>
+                <div class="option-row">
+                  <label class="form-check">
+                    <input type="checkbox" id="compressMetadata" checked> Remove metadata
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div id="compressProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Compressing...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <button id="compressBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="archive"></i> Compress PDF
+            </button>
+            <div id="compressResult" class="result-section"></div>
+          </div>
+        </div>
+
+        <!-- ═══════ WATERMARK PANEL ═══════ -->
+        <div id="panel-watermark" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="stamp"></i> Watermark & Stamp</h2>
+            <p>Add text watermarks, image watermarks, page numbers, or headers & footers.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="watermarkDropzone" class="dropzone">
+                <div class="dropzone-icon">📄</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card">
+              <div class="tabs" id="watermarkTabs">
+                <button class="tab-btn active" data-tab="textWatermark">Text</button>
+                <button class="tab-btn" data-tab="imageWatermark">Image</button>
+                <button class="tab-btn" data-tab="pageNumbers">Page Numbers</button>
+                <button class="tab-btn" data-tab="headerFooter">Header/Footer</button>
+              </div>
+              <!-- Text Watermark -->
+              <div id="textWatermark" class="tab-content active">
+                <div class="option-group">
+                  <div class="form-group">
+                    <label class="form-label">Watermark Text</label>
+                    <input id="wmText" type="text" class="form-input" placeholder="CONFIDENTIAL" value="CONFIDENTIAL">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Font Size</label>
+                      <input id="wmFontSize" type="number" class="form-input" value="48" min="8" max="200">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Opacity: <span id="wmOpacityValue">30</span>%</label>
+                      <input id="wmOpacity" type="range" class="form-range" min="5" max="100" value="30">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Color</label>
+                      <input id="wmColor" type="color" value="#ff0000">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Rotation (degrees)</label>
+                      <input id="wmRotation" type="number" class="form-input" value="-45" min="-180" max="180">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <div class="position-grid" id="wmPositionGrid">
+                      <div class="position-cell" data-pos="top-left">↖</div>
+                      <div class="position-cell" data-pos="top-center">↑</div>
+                      <div class="position-cell" data-pos="top-right">↗</div>
+                      <div class="position-cell" data-pos="center-left">←</div>
+                      <div class="position-cell active" data-pos="center">•</div>
+                      <div class="position-cell" data-pos="center-right">→</div>
+                      <div class="position-cell" data-pos="bottom-left">↙</div>
+                      <div class="position-cell" data-pos="bottom-center">↓</div>
+                      <div class="position-cell" data-pos="bottom-right">↘</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Image Watermark -->
+              <div id="imageWatermark" class="tab-content">
+                <div class="option-group">
+                  <div class="form-group">
+                    <label class="form-label">Watermark Image</label>
+                    <input id="wmImage" type="file" class="form-input" accept="image/*">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Opacity: <span id="wmImgOpacityValue">30</span>%</label>
+                      <input id="wmImgOpacity" type="range" class="form-range" min="5" max="100" value="30">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Scale: <span id="wmImgScaleValue">50</span>%</label>
+                      <input id="wmImgScale" type="range" class="form-range" min="10" max="200" value="50">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Page Numbers -->
+              <div id="pageNumbers" class="tab-content">
+                <div class="option-group">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Format</label>
+                      <select id="pnFormat" class="form-select">
+                        <option value="numeric">1, 2, 3...</option>
+                        <option value="roman">i, ii, iii...</option>
+                        <option value="alpha">a, b, c...</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Start From</label>
+                      <input id="pnStart" type="number" class="form-input" value="1" min="1">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Position</label>
+                      <select id="pnPosition" class="form-select">
+                        <option value="bottom-center">Bottom Center</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="top-center">Top Center</option>
+                        <option value="top-left">Top Left</option>
+                        <option value="top-right">Top Right</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Font Size</label>
+                      <input id="pnFontSize" type="number" class="form-input" value="12" min="6" max="48">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Prefix</label>
+                      <input id="pnPrefix" type="text" class="form-input" placeholder="Page ">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Suffix</label>
+                      <input id="pnSuffix" type="text" class="form-input" placeholder="">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Header/Footer -->
+              <div id="headerFooter" class="tab-content">
+                <div class="option-group">
+                  <div class="form-group">
+                    <label class="form-label">Header Text (use {page} for page number, {date} for date)</label>
+                    <input id="hfHeader" type="text" class="form-input" placeholder="Document Title">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Footer Text</label>
+                    <input id="hfFooter" type="text" class="form-input" placeholder="Page {page} — {date}">
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Font Size</label>
+                      <input id="hfFontSize" type="number" class="form-input" value="10" min="6" max="24">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Margin (px)</label>
+                      <input id="hfMargin" type="number" class="form-input" value="30" min="10" max="100">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="watermarkBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="stamp"></i> Apply Watermark
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════ SECURITY PANEL ═══════ -->
+        <div id="panel-security" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="shield-check"></i> Security & Protection</h2>
+            <p>Password protect your PDF or unlock a password-protected file.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="securityDropzone" class="dropzone">
+                <div class="dropzone-icon">🔐</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card">
+              <div class="tabs" id="securityTabs">
+                <button class="tab-btn active" data-tab="protectTab">Protect</button>
+                <button class="tab-btn" data-tab="unlockTab">Unlock</button>
+              </div>
+              <div id="protectTab" class="tab-content active">
+                <div class="option-group">
+                  <div class="form-group">
+                    <label class="form-label">Set Password</label>
+                    <input id="secPassword" type="password" class="form-input" placeholder="Enter a strong password">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input id="secPasswordConfirm" type="password" class="form-input" placeholder="Confirm password">
+                  </div>
+                  <div class="option-row">
+                    <label class="form-check">
+                      <input type="checkbox" id="secNoPrint"> Disable printing
+                    </label>
+                  </div>
+                  <div class="option-row">
+                    <label class="form-check">
+                      <input type="checkbox" id="secNoCopy"> Disable copying
+                    </label>
+                  </div>
+                  <div class="option-row">
+                    <label class="form-check">
+                      <input type="checkbox" id="secNoEdit"> Disable editing
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div id="unlockTab" class="tab-content">
+                <div class="option-group">
+                  <div class="form-group">
+                    <label class="form-label">Enter Current Password</label>
+                    <input id="secUnlockPassword" type="password" class="form-input" placeholder="Enter the PDF password">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button id="securityBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="shield-check"></i> Apply Security
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══════ CONVERT PANEL ═══════ -->
+        <div id="panel-convert" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="repeat-2"></i> Convert</h2>
+            <p>Convert between PDF and image formats with full control over quality and layout.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="tabs" id="convertTabs">
+                <button class="tab-btn active" data-tab="pdfToImageTab">PDF → Images</button>
+                <button class="tab-btn" data-tab="imageToPdfTab">Images → PDF</button>
+              </div>
+              <!-- PDF to Images -->
+              <div id="pdfToImageTab" class="tab-content active">
+                <div id="pdfToImgDropzone" class="dropzone mb-4">
+                  <div class="dropzone-icon">📄</div>
+                  <div class="dropzone-text">Drop PDF file here</div>
+                  <div class="dropzone-subtext">or <span>click to browse</span></div>
+                  <input type="file" accept=".pdf">
+                </div>
+                <div class="option-group">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Format</label>
+                      <select id="pdfToImgFormat" class="form-select">
+                        <option value="png">PNG (Lossless)</option>
+                        <option value="jpeg">JPEG (Smaller)</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Scale (DPI Quality)</label>
+                      <select id="pdfToImgScale" class="form-select">
+                        <option value="1">72 DPI (Fast)</option>
+                        <option value="2" selected>144 DPI (Good)</option>
+                        <option value="3">216 DPI (High)</option>
+                        <option value="4">288 DPI (Ultra)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Pages (leave empty for all)</label>
+                    <input id="pdfToImgPages" type="text" class="form-input" placeholder="e.g., 1-3, 5">
+                  </div>
+                </div>
+              </div>
+              <!-- Images to PDF -->
+              <div id="imageToPdfTab" class="tab-content">
+                <div id="imgToPdfDropzone" class="dropzone mb-4">
+                  <div class="dropzone-icon">🖼️</div>
+                  <div class="dropzone-text">Drop image files here</div>
+                  <div class="dropzone-subtext">or <span>click to browse</span> — PNG, JPG, WEBP</div>
+                  <input type="file" accept="image/*" multiple>
+                </div>
+                <div id="imgToPdfFileList" class="file-list mb-3"></div>
+                <div class="option-group">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label">Page Size</label>
+                      <select id="imgToPdfSize" class="form-select">
+                        <option value="a4">A4 (210×297mm)</option>
+                        <option value="letter">Letter (8.5×11in)</option>
+                        <option value="legal">Legal (8.5×14in)</option>
+                        <option value="fit">Fit to Image</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Orientation</label>
+                      <select id="imgToPdfOrientation" class="form-select">
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                        <option value="auto">Auto (fit image)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Margin (px)</label>
+                    <input id="imgToPdfMargin" type="number" class="form-input" value="20" min="0" max="100">
+                  </div>
+                  <div class="option-row">
+                    <label class="form-check">
+                      <input type="checkbox" id="imgToPdfFit" checked> Fit image within page
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="convertProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Converting...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <button id="convertBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="repeat-2"></i> Convert
+            </button>
+            <div id="convertResult" class="result-section"></div>
+          </div>
+        </div>
+
+        <!-- ═══════ OCR PANEL ═══════ -->
+        <div id="panel-ocr" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="scan-text"></i> OCR Scanner — Hindi & English</h2>
+            <p>Extract text from scanned PDFs or images using Tesseract.js. Supports Hindi (हिन्दी) and English.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF or Image</div>
+              <div id="ocrDropzone" class="dropzone">
+                <div class="dropzone-icon">🔍</div>
+                <div class="dropzone-text">Drop your file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span> — PDF, PNG, JPG, TIFF</div>
+                <input type="file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif,.bmp,.webp">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><i data-lucide="settings"></i> OCR Settings</div>
+              <div class="option-group">
+                <div class="option-row">
+                  <label>Language:</label>
+                  <div class="chip-group">
+                    <button class="chip active" data-ocr-lang="eng">English</button>
+                    <button class="chip" data-ocr-lang="hin">Hindi (हिन्दी)</button>
+                    <button class="chip" data-ocr-lang="eng+hin">Both (EN + हिं)</button>
+                  </div>
+                </div>
+                <div class="option-row">
+                  <label>Output Mode:</label>
+                  <div class="chip-group">
+                    <button class="chip active" data-ocr-mode="text">Extract Text Only</button>
+                    <button class="chip" data-ocr-mode="searchable">Make Searchable PDF</button>
+                  </div>
+                </div>
+                <div id="ocrSearchableInfo" class="hidden" style="padding:10px 14px;background:var(--accent-bg);border-radius:var(--radius-md);border:1px solid var(--accent-light);">
+                  <p class="text-sm" style="color:var(--accent-dark);">📄 <strong>Searchable PDF</strong> — OCR text layer will be embedded invisibly on top of each page. The PDF will look the same but text will be selectable, searchable and copyable in any PDF reader.</p>
+                </div>
+                <div class="form-group" id="ocrPageSelectGroup" style="display:none">
+                  <label class="form-label">Pages to OCR (leave empty for all)</label>
+                  <input id="ocrPageSelect" type="text" class="form-input" placeholder="e.g., 1, 3, 5-8">
+                </div>
+              </div>
+            </div>
+            <div id="ocrProgress" class="progress-wrapper" style="display:none">
+              <div class="progress-label"><span class="progress-text">Recognizing text...</span><span class="progress-pct">0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <button id="ocrBtn" class="btn btn-primary btn-lg" disabled>
+              <i data-lucide="scan-text"></i> Start OCR
+            </button>
+            <div id="ocrResultCard" class="card hidden mt-4">
+              <div class="flex justify-between items-center mb-3">
+                <div class="card-title mb-0"><i data-lucide="file-text"></i> OCR Result</div>
+                <div class="flex gap-2">
+                  <span id="ocrConfidence" class="ocr-confidence"></span>
+                  <button id="ocrCopyBtn" class="btn btn-sm btn-secondary"><i data-lucide="copy"></i> Copy</button>
+                  <button id="ocrDownloadBtn" class="btn btn-sm btn-secondary"><i data-lucide="download"></i> TXT</button>
+                  <button id="ocrSearchablePdfBtn" class="btn btn-sm btn-primary hidden"><i data-lucide="file-check"></i> Download Searchable PDF</button>
+                </div>
+              </div>
+              <div id="ocrOutput" class="ocr-output"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ EDIT PANEL ═══════ -->
+        <div id="panel-edit" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="pen-tool"></i> Edit & Annotate</h2>
+            <p>Add text, images, drawings, signatures, highlights, and shapes to your PDF.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="editDropzone" class="dropzone">
+                <div class="dropzone-icon">📝</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card" id="editWorkspace" style="display:none">
+              <div class="card-title"><i data-lucide="pen-tool"></i> Editing Workspace</div>
+              <!-- Compact Drawing Toolbar -->
+              <div class="drawing-toolbar" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:8px 12px;background:var(--bg-elevated);border-radius:var(--radius-md);margin-bottom:8px;">
+                <button class="tool-btn active" data-edit-tool="select" title="Select"><i data-lucide="mouse-pointer-2"></i></button>
+                <button class="tool-btn" data-edit-tool="text" title="Add Text"><i data-lucide="type"></i></button>
+                <button class="tool-btn" data-edit-tool="draw" title="Freehand Draw"><i data-lucide="pencil"></i></button>
+                <button class="tool-btn" data-edit-tool="highlight" title="Highlight"><i data-lucide="highlighter"></i></button>
+                <div class="separator"></div>
+                <button class="tool-btn" data-edit-tool="rect" title="Rectangle"><i data-lucide="square"></i></button>
+                <button class="tool-btn" data-edit-tool="circle" title="Circle/Ellipse"><i data-lucide="circle"></i></button>
+                <button class="tool-btn" data-edit-tool="arrow" title="Arrow"><i data-lucide="move-right"></i></button>
+                <button class="tool-btn" data-edit-tool="line" title="Line"><i data-lucide="minus"></i></button>
+                <div class="separator"></div>
+                <button class="tool-btn" data-edit-tool="sign" title="Signature"><i data-lucide="pen-line"></i></button>
+                <button class="tool-btn" data-edit-tool="image" title="Add Image"><i data-lucide="image-plus"></i></button>
+                <button class="tool-btn" data-edit-tool="stamp" title="Stamp"><i data-lucide="stamp"></i></button>
+                <div class="separator"></div>
+                <input type="color" id="editColor" value="#ff0000" title="Color" style="width:28px;height:28px;border:none;padding:0;cursor:pointer;border-radius:4px;">
+                <input type="range" id="editStroke" min="1" max="20" value="3" title="Stroke Width" style="width:60px;">
+                <div class="separator"></div>
+                <button class="tool-btn" data-edit-tool="undo" title="Undo"><i data-lucide="undo-2"></i></button>
+                <button class="tool-btn" data-edit-tool="clear" title="Clear All"><i data-lucide="trash-2"></i></button>
+              </div>
+              <!-- Compact Page Navigation -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <button id="editPrevPage" class="btn btn-sm btn-secondary"><i data-lucide="chevron-left"></i></button>
+                  <span id="editPageInfo" class="text-sm font-semibold">Page 1 of 1</span>
+                  <button id="editNextPage" class="btn btn-sm btn-secondary"><i data-lucide="chevron-right"></i></button>
+                </div>
+                <button id="editSaveBtn" class="btn btn-sm btn-primary" disabled>
+                  <i data-lucide="save"></i> Save PDF
+                </button>
+              </div>
+              <!-- Canvas Area — fills available space -->
+              <div id="editCanvasContainer" style="position:relative;border:1px solid var(--border-color);border-radius:var(--radius-md);overflow:auto;background:#fff;max-height:calc(100vh - 300px);">
+                <canvas id="editPdfCanvas"></canvas>
+                <canvas id="editDrawCanvas" style="position:absolute;top:0;left:0;cursor:crosshair;"></canvas>
+              </div>
+              <!-- Text Input (inline, compact) -->
+              <div id="editTextInput" class="hidden" style="margin-top:8px;">
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input id="editTextValue" type="text" class="form-input" placeholder="Enter text..." style="flex:1;">
+                  <input id="editTextSize" type="number" class="form-input" value="16" min="8" max="72" style="width:70px;">
+                  <button id="editTextAdd" class="btn btn-sm btn-primary">Add</button>
+                </div>
+              </div>
+              <!-- Signature Pad (compact) -->
+              <div id="editSignPad" class="hidden" style="margin-top:8px;">
+                <p class="text-sm text-muted" style="margin-bottom:4px;">Draw your signature:</p>
+                <canvas id="signatureCanvas" class="signature-pad" width="350" height="100" style="border:1px solid var(--border-color);border-radius:var(--radius-md);background:white;"></canvas>
+                <div style="display:flex;gap:6px;margin-top:4px;">
+                  <button id="signClear" class="btn btn-sm btn-secondary">Clear</button>
+                  <button id="signApply" class="btn btn-sm btn-primary">Place on Page</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════ VIEWER PANEL ═══════ -->
+        <div id="panel-viewer" class="tool-panel">
+          <div class="tool-header">
+            <h2><i data-lucide="eye"></i> Viewer & Document Info</h2>
+            <p>View PDFs, extract text, compare documents, and inspect file properties.</p>
+          </div>
+          <div class="tool-body">
+            <div class="card">
+              <div class="card-title"><i data-lucide="upload"></i> Upload PDF</div>
+              <div id="viewerDropzone" class="dropzone">
+                <div class="dropzone-icon">👁️</div>
+                <div class="dropzone-text">Drop your PDF file here</div>
+                <div class="dropzone-subtext">or <span>click to browse</span></div>
+                <input type="file" accept=".pdf">
+              </div>
+            </div>
+            <div class="card" id="viewerWorkspace" style="display:none">
+              <div class="tabs" id="viewerTabs">
+                <button class="tab-btn active" data-tab="viewerView">Viewer</button>
+                <button class="tab-btn" data-tab="viewerThumbnails">Thumbnails</button>
+                <button class="tab-btn" data-tab="viewerText">Extract Text</button>
+                <button class="tab-btn" data-tab="viewerProperties">Properties</button>
+              </div>
+              <!-- Viewer Tab -->
+              <div id="viewerView" class="tab-content active">
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center gap-2">
+                    <button id="viewerPrev" class="btn btn-sm btn-secondary"><i data-lucide="chevron-left"></i></button>
+                    <span id="viewerPageInfo" class="text-sm font-semibold">Page 1 of 1</span>
+                    <button id="viewerNext" class="btn btn-sm btn-secondary"><i data-lucide="chevron-right"></i></button>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button id="viewerZoomOut" class="btn btn-sm btn-secondary"><i data-lucide="zoom-out"></i></button>
+                    <span id="viewerZoomLevel" class="text-sm font-semibold">100%</span>
+                    <button id="viewerZoomIn" class="btn btn-sm btn-secondary"><i data-lucide="zoom-in"></i></button>
+                  </div>
+                </div>
+                <div id="viewerCanvasWrapper" style="overflow:auto;max-height:600px;border:1px solid var(--border-color);border-radius:var(--radius-md);background:#f5f5f5;">
+                  <canvas id="viewerCanvas"></canvas>
+                </div>
+              </div>
+              <!-- Thumbnails Tab -->
+              <div id="viewerThumbnails" class="tab-content">
+                <div id="viewerThumbGrid" class="thumbnail-grid"></div>
+              </div>
+              <!-- Text Extraction Tab -->
+              <div id="viewerText" class="tab-content">
+                <div class="flex justify-between items-center mb-3">
+                  <p class="text-sm text-muted">Extracted text from all pages:</p>
+                  <div class="flex gap-2">
+                    <button id="viewerCopyText" class="btn btn-sm btn-secondary"><i data-lucide="copy"></i> Copy All</button>
+                    <button id="viewerDownloadText" class="btn btn-sm btn-secondary"><i data-lucide="download"></i> Download TXT</button>
+                  </div>
+                </div>
+                <div id="viewerExtractedText" class="ocr-output" style="min-height:200px;"></div>
+              </div>
+              <!-- Properties Tab -->
+              <div id="viewerProperties" class="tab-content">
+                <div id="viewerPropsTable"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.main-content -->
+    </main>
+  </div><!-- /.app-layout -->
+
+  <!-- App Scripts -->
+  <script src="js/pdf-utils.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pdf-merge.js"></script>
+  <script src="js/pdf-split.js"></script>
+  <script src="js/pdf-rotate.js"></script>
+  <script src="js/pdf-compress.js"></script>
+  <script src="js/pdf-watermark.js"></script>
+  <script src="js/pdf-security.js"></script>
+  <script src="js/pdf-convert.js"></script>
+  <script src="js/pdf-ocr.js"></script>
+  <script src="js/pdf-edit.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/pdf-viewer.js"></script>
+  <script>
+    // Init particles on pdf-tools page (subtle, low count)
+    document.addEventListener('DOMContentLoaded', () => {
+      ParticleNetwork.init('particleCanvas', {
+        particleCount: 50,
+        lineDistance: 120,
+        mouseDistance: 150,
+        speed: 0.25,
+        lineOpacity: 0.08,
+        particleOpacity: 0.3
+      });
+    });
+  </script>
+</body>
+</html>
